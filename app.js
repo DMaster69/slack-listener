@@ -3,7 +3,7 @@ var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 var RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 var MemoryDataStore = require('@slack/client').MemoryDataStore;
 
-var token = process.env.SLACK_API_TOKEN || '';
+var token = process.env.SLACK_API_TOKEN || 'xoxp-13346603558-13350392466-46307817728-7bfe717528';
 
 var rtm = new RtmClient(token, {
   logLevel: 'error', //debug
@@ -25,19 +25,22 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
 		var channel_name = getChannelNameById( message.channel );
 		var message_text = message.text;
 
-		if(message_text === undefined) {
-			if( message.hasOwnProperty("subtype") && message.subtype == "message_changed" ){
-				message_text = `\nMESSAGE: ${message.previous_message.text}  \nCHANGED: ${message.message.text}`;
-				user_name = getUserNameById(message.previous_message.user);
-			}else if(message.hasOwnProperty("subtype") && message.subtype == "message_deleted"){
-				message_text = `[DELETED] ${message.previous_message.text} -by ${getUserNameById(message.previous_message.user)}`;
-				user_name = getUserNameById(message.previous_message.user);
-			}else console.log(message);
+		if( ignoredChannels.indexOf( channel_name ) == -1 || user_name !== 'bot'){
+
+			if(message_text === undefined) {
+				if( message.hasOwnProperty("subtype") && message.subtype == "message_changed" ){
+					message_text = `\nMESSAGE: ${message.previous_message.text}  \nCHANGED: ${message.message.text}`;
+					user_name = getUserNameById(message.previous_message.user);
+				}else if(message.hasOwnProperty("subtype") && message.subtype == "message_deleted"){
+					message_text = `[DELETED] ${message.previous_message.text} -by ${getUserNameById(message.previous_message.user)}`;
+					user_name = getUserNameById(message.previous_message.user);
+				}else console.log(message);
+			}
+
+			message_text = replaceUsersTags(message_text);
+
+			console.log(`[${channel_name}] - ${user_name} : ${message_text}`);
 		}
-
-		message_text = replaceUsersTags(message_text);
-
-		console.log(`[${channel_name}] - ${user_name} : ${message_text}`);
 	}else{
 		console.log(message);
 	}
@@ -71,10 +74,12 @@ const getUserNameById = function(id){
 
 const getChannelNameById = function(id){
 	var channel = rtm.dataStore.getChannelGroupOrDMById(id);
-	return (channel !== undefined) ? channel.name : 'private';
+	return (channel.hasOwnProperty("name"))? channel.name : 'private';
 };
 
 String.prototype.replaceAll = function(search, replacement) {
 	var target = this;
 	return target.replace(new RegExp(search, 'g'), replacement);
 };
+
+const ignoredChannels = ['rss', 'ofertas-laborales'];
