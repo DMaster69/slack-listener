@@ -3,7 +3,7 @@ var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 var RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 var MemoryDataStore = require('@slack/client').MemoryDataStore;
 
-var token = process.env.SLACK_API_TOKEN || 'xoxp-13346603558-13350392466-46307817728-7bfe717528';
+var token = process.env.SLACK_API_TOKEN || '';
 
 var rtm = new RtmClient(token, {
   logLevel: 'error', //debug
