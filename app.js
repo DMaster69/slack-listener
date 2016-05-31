@@ -1,12 +1,21 @@
-var RtmClient = require('@slack/client').RtmClient;
-var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
-var RTM_EVENTS = require('@slack/client').RTM_EVENTS;
-var MemoryDataStore = require('@slack/client').MemoryDataStore;
+var colors 			= require('colors');
+
+const readline = require('readline');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+var RtmClient 		= require('@slack/client').RtmClient,
+	CLIENT_EVENTS 	= require('@slack/client').CLIENT_EVENTS,
+	RTM_EVENTS 		= require('@slack/client').RTM_EVENTS,
+	MemoryDataStore = require('@slack/client').MemoryDataStore;
 
 var token = process.env.SLACK_API_TOKEN || '';
 
 var rtm = new RtmClient(token, {
-  logLevel: 'error', //debug
+  logLevel: 'info', //debug
   dataStore: new MemoryDataStore(),
   autoReconnect: true,
   autoMark: true
@@ -15,6 +24,7 @@ rtm.start();
 
 rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, function (rtmStartData) {
 	console.log(`Logged in as ${rtmStartData.self.name} of team ${rtmStartData.team.name}, but not yet connected to a channel`);
+	senderMessage();
 });
 
 rtm.on(RTM_EVENTS.MESSAGE, function (message) {
@@ -32,14 +42,14 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
 					message_text = `\nMESSAGE: ${message.previous_message.text}  \nCHANGED: ${message.message.text}`;
 					user_name = getUserNameById(message.previous_message.user);
 				}else if(message.hasOwnProperty("subtype") && message.subtype == "message_deleted"){
-					message_text = `[DELETED] ${message.previous_message.text} -by ${getUserNameById(message.previous_message.user)}`;
+					message_text = `[DELETED] ${message.previous_message.text}`;
 					user_name = getUserNameById(message.previous_message.user);
 				}else console.log(message);
 			}
 
 			message_text = replaceUsersTags(message_text);
-
 			console.log(`[${channel_name}] - ${user_name} : ${message_text}`);
+			//console.log("[" + channel_name + "]".green + " - " + user_name +" : " + message_text);
 		}
 	}else{
 		console.log(message);
@@ -83,3 +93,19 @@ String.prototype.replaceAll = function(search, replacement) {
 };
 
 const ignoredChannels = ['rss', 'ofertas-laborales'];
+
+
+
+//Sender
+const senderMessage = function(){
+	rl.question('', (answer) => {
+		//TODO: obtener canales y mensaje desde la consola, no solo el mensaje :P
+		var channel_id = rtm.dataStore.getChannelOrGroupByName('general').id || 'C0DAADCHF';
+		var message = answer;
+		rtm.sendMessage(message, channel_id, function messageSent() {
+		    //callback por si lo necesito
+		});
+
+		senderMessage();
+	});
+}
