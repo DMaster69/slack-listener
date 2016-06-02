@@ -35,7 +35,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
 		var channel_name = getChannelNameById( message.channel );
 		var message_text = message.text;
 
-		if( ignoredChannels.indexOf( channel_name ) == -1 || user_name !== 'bot'){
+		if( ignoredChannels.indexOf( channel_name ) == -1 && user_name !== 'bot'){
 
 			if(message_text === undefined) {
 				if( message.hasOwnProperty("subtype") && message.subtype == "message_changed" ){
@@ -87,6 +87,11 @@ const getChannelNameById = function(id){
 	return (channel.hasOwnProperty("name"))? channel.name : 'private';
 };
 
+const getChannelIdByName = function(name){
+	var channel = rtm.dataStore.getChannelOrGroupByName(name);
+	return (channel !== undefined && channel.hasOwnProperty("id"))? channel.id : 'C0DAADCHF';//default general
+};
+
 String.prototype.replaceAll = function(search, replacement) {
 	var target = this;
 	return target.replace(new RegExp(search, 'g'), replacement);
@@ -95,13 +100,15 @@ String.prototype.replaceAll = function(search, replacement) {
 const ignoredChannels = ['rss', 'ofertas-laborales'];
 
 
-
 //Sender
 const senderMessage = function(){
 	rl.question('', (answer) => {
-		//TODO: obtener canales y mensaje desde la consola, no solo el mensaje :P
-		var channel_id = rtm.dataStore.getChannelOrGroupByName('general').id || 'C0DAADCHF';
-		var message = answer;
+
+		var index 			= answer.indexOf('->');
+		var channel_name 	= answer.substr( 0, index );
+		var message 		= answer.substr( index + 2 );
+		var channel_id 		= getChannelIdByName(channel_name) || 'C0DAADCHF';
+		
 		rtm.sendMessage(message, channel_id, function messageSent() {
 		    //callback por si lo necesito
 		});
