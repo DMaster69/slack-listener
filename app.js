@@ -89,8 +89,17 @@ const getChannelNameById = function(id){
 
 const getChannelIdByName = function(name){
 	var channel = rtm.dataStore.getChannelOrGroupByName(name);
-	return (channel !== undefined && channel.hasOwnProperty("id"))? channel.id : 'C0DAADCHF';//default general
+	return (channel !== undefined && channel.hasOwnProperty("id"))? channel.id : (getUserIdByName(name) != null) ? getUserIdByName(name) :'C0DAADCHF';//default general
 };
+
+const getUserIdByName = function(name){
+	try {
+		var user = rtm.dataStore.getDMByName(name);
+	} catch (error) {
+		
+	}
+	return (user != undefined && user.hasOwnProperty("id")) ? user.id : null;
+}
 
 String.prototype.replaceAll = function(search, replacement) {
 	var target = this;
@@ -109,8 +118,8 @@ const senderMessage = function(){
 		var message 		= answer.substr( index + 2 );
 		var channel_id 		= getChannelIdByName(channel_name) || 'C0DAADCHF';
 		
-		rtm.sendMessage(message, channel_id, function messageSent() {
-		    //callback por si lo necesito
+		rtm.sendMessage(message, channel_id, function messageSent(err, sended) {
+		    if (err !== null) console.log(err);
 		});
 
 		senderMessage();
