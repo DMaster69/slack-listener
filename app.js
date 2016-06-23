@@ -44,6 +44,9 @@ rtm.on(RTM_EVENTS.MESSAGE, function (message) {
 				}else if(message.hasOwnProperty("subtype") && message.subtype == "message_deleted"){
 					message_text = `[DELETED] ${message.previous_message.text}`;
 					user_name = getUserNameById(message.previous_message.user);
+				}else if(message.hasOwnProperty("subtype") && message.subtype == "bot_message"){
+					message_text = `[TWITTER] ${message.attachments[0].text}`;
+					user_name = '[bot]';
 				}else console.log(message);
 			}
 
